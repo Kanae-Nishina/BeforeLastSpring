@@ -1,0 +1,5 @@
+*.lib
+Effekseer/
+*.APS
+*.filters
+Debug/
