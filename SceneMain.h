@@ -1,22 +1,24 @@
+#pragma once
 /*
-	@file	SceneTitle.h
-	@brief	タイトルシーン
-	@date	2017/02/18
+	@file	SceneMain.cpp
+	@brief	メインシーン
+	@date	2017/02/21
 	@author	仁科香苗
 */
 #pragma once
 #include "Scene.h"
 #include "SceneRoot.h"
-#include "SceneMain.h"
+#include "SceneTitle.h"
 
-class SceneTitle:public Scene
+class SceneMain:public Scene
 {
 public:
-	SceneTitle();
-	~SceneTitle();
+	SceneMain();
+	~SceneMain();
 
 	void Init();
 	SceneBase* Update(SceneRoot* root);
 	void Render();
 	void Destroy();
 };
+

@@ -1,5 +1,4 @@
-*.lib
 Effekseer/
+Debug/
 *.APS
 *.filters
-Debug/

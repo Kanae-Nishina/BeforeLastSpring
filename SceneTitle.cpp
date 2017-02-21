@@ -1,13 +1,54 @@
+/*
+	@file	SceneTitle.h
+	@brief	タイトルシーン
+	@date	2017/02/18
+	@author	仁科香苗
+*/
 #include "SceneTitle.h"
 
-
-#if 0 エラったのでいったん消す
+/*
+	@brief	コンストラクタ
+*/
 SceneTitle::SceneTitle()
 {
 }
 
-
+/*
+	@brief	デストラクタ
+*/
 SceneTitle::~SceneTitle()
 {
 }
-#endif
+
+/*
+	@brief	初期化
+*/
+void SceneTitle::Init()
+{
+}
+
+/*
+	@brief	解放
+*/
+void SceneTitle::Destroy()
+{
+}
+
+/*
+	@brief	シーンの更新
+*/
+SceneBase* SceneTitle::Update(SceneRoot* root)
+{
+	SceneBase* next = this;
+
+	return next;
+}
+
+/*
+	@brief	描画
+*/
+void SceneTitle::Render()
+{
+
+}
+

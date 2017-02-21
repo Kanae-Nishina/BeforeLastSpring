@@ -1,18 +1,16 @@
 /*
 	@file	SceneRoot.cpp
-	@brief	シーン遷移のマネージャ
-	@date	2017/02/21
+	@brief	シーン遷移管理クラス
+	@date	2017/02/18
 	@author	仁科香苗
 */
-
 #include "SceneRoot.h"
 
-#if 0 エラったのでいったん消す
 /*
 	@brief	コンストラクタ
 */
 SceneRoot::SceneRoot()
-	:m_scene(nullptr)
+	:m_pScene(nullptr)
 {
 }
 
@@ -28,42 +26,45 @@ SceneRoot::~SceneRoot()
 */
 void SceneRoot::Init()
 {
-	m_scene = new SceneTitle;
-	m_scene->Init();
+	m_pScene = new SceneTitle;
+	m_pScene->Init();
 }
+
 
 /*
 	@brief	解放
 */
 void SceneRoot::Destroy()
 {
-	SAFE_DELETE(m_scene);
+	delete m_pScene;
+	m_pScene = nullptr;
 }
 
 /*
-	@brief	更新
+	@brief	シーン遷移の更新処理
 */
 SceneBase* SceneRoot::Update(SceneBase* scene)
 {
 	//シーンの実行
-	SceneBase* next = m_scene->Update(this);
-	//戻り値が現在のシーンと異なっていたらシーン切り替え
-	if (next != m_scene)
+	SceneBase* next = m_pScene->Update(this);
+
+	//戻り値が現在のシーンと異なっていればシーン遷移
+	if (next != m_pScene)
 	{
-		m_scene->Destroy();
-		delete m_scene;
 		Scene* casted = dynamic_cast<Scene*>(next);
-		m_scene = casted;
-		m_scene->Init();
+		m_pScene->Destroy();
+		delete m_pScene;
+
+		m_pScene = casted;
+		m_pScene->Init();
 	}
 	return this;
 }
 
 /*
-	@brief	描画
+	@brief	現在のシーンの描画
 */
 void SceneRoot::Render()
 {
-	m_scene->Render();
+	m_pScene->Render();
 }
-#endif
