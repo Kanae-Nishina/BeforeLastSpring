@@ -11,6 +11,8 @@
 
 class SceneTitle:public Scene
 {
+private:
+	void Update();
 public:
 	SceneTitle();
 	~SceneTitle();

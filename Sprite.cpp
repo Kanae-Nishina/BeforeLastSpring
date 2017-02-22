@@ -1,23 +1,23 @@
 /*
-	@file	Sprite.cpp
-	@brief	スプライト
-	@date	2017/02/20
+	@file			Sprite.cpp
+	@brief		スプライト
+	@date		2017/02/20
 	@author	仁科香苗
 */
 #include "Sprite.h"
 
-ID3D11Device*			Sprite::m_pDevice = nullptr;
-ID3D11DeviceContext*	Sprite::m_pDeviceContext = nullptr;
-ID3D11SamplerState*		Sprite::m_pSampleLinear = nullptr;
-ID3D11VertexShader*		Sprite::m_pVertexShader = nullptr;
-ID3D11PixelShader*		Sprite::m_pPixelShader = nullptr;
-ID3D11InputLayout*		Sprite::m_pVertexLayout = nullptr;
-ID3D11Buffer*			Sprite::m_pConstantBuffer = nullptr;
-ID3D11BlendState*		Sprite::m_pBlendState = nullptr;
+ID3D11Device*				Sprite::m_pDevice				= nullptr;
+ID3D11DeviceContext*	Sprite::m_pDeviceContext	= nullptr;
+ID3D11SamplerState*	Sprite::m_pSampleLinear	= nullptr;
+ID3D11VertexShader*	Sprite::m_pVertexShader	= nullptr;
+ID3D11PixelShader*		Sprite::m_pPixelShader		= nullptr;
+ID3D11InputLayout*		Sprite::m_pVertexLayout	= nullptr;
+ID3D11Buffer*				Sprite::m_pConstantBuffer	= nullptr;
+ID3D11BlendState*		Sprite::m_pBlendState		= nullptr;
 D3DXVECTOR4				Sprite::m_color;
 D3D11_BLEND_DESC		Sprite::m_dd;
-D3DXMATRIX				Sprite::m_view;
-D3DXMATRIX				Sprite::m_proj;
+D3DXMATRIX					Sprite::m_view;
+D3DXMATRIX					Sprite::m_proj;
 
 /*
 	@brief	コンストラクタ

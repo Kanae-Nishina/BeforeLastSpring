@@ -6,13 +6,13 @@
 */
 #include "DirectX.h"
 
-HWND					DirectX::m_wnd;
-ID3D11Device*			DirectX::m_pDevice				= nullptr;
-ID3D11DeviceContext*	DirectX::m_pDeviceContext		= nullptr;
-IDXGISwapChain*			DirectX::m_pSwapChain			= nullptr;
-ID3D11RenderTargetView*	DirectX::m_pBackBuffer_TexRTV	= nullptr;
-ID3D11DepthStencilView*	DirectX::m_pBackBuffer_DSTexDSV = nullptr;
-ID3D11Texture2D*		DirectX::m_pBackBuffer_DSTex	= nullptr;
+HWND								DirectX::m_wnd;
+ID3D11Device*					DirectX::m_pDevice							= nullptr;
+ID3D11DeviceContext*		DirectX::m_pDeviceContext				= nullptr;
+IDXGISwapChain*				DirectX::m_pSwapChain						= nullptr;
+ID3D11RenderTargetView*	DirectX::m_pBackBuffer_TexRTV			= nullptr;
+ID3D11DepthStencilView*	DirectX::m_pBackBuffer_DSTexDSV		= nullptr;
+ID3D11Texture2D*				DirectX::m_pBackBuffer_DSTex			= nullptr;
 
 
 /*
@@ -200,6 +200,7 @@ void DirectX::Loop()
 */
 void DirectX::DestroyD3D()
 {
+
 	SAFE_RELEASE(m_pSwapChain);
 	SAFE_RELEASE(m_pBackBuffer_TexRTV);
 	SAFE_RELEASE(m_pBackBuffer_DSTexDSV);

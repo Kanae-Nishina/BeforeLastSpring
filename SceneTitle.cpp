@@ -40,8 +40,16 @@ void SceneTitle::Destroy()
 SceneBase* SceneTitle::Update(SceneRoot* root)
 {
 	SceneBase* next = this;
-
+	Update();
 	return next;
+}
+
+/*
+	@brief	çXêV
+*/
+void SceneTitle::Update()
+{
+
 }
 
 /*
