@@ -1,32 +1,30 @@
 /*
 	@file			Sprite.cpp
-	@brief		スプライト
-	@date		2017/02/20
+	@brief		2Dスプライト
+	@date		2017/02/22
 	@author	仁科香苗
 */
 #include "Sprite.h"
 
-ID3D11Device*				Sprite::m_pDevice				= nullptr;
-ID3D11DeviceContext*	Sprite::m_pDeviceContext	= nullptr;
-ID3D11SamplerState*	Sprite::m_pSampleLinear	= nullptr;
-ID3D11VertexShader*	Sprite::m_pVertexShader	= nullptr;
-ID3D11PixelShader*		Sprite::m_pPixelShader		= nullptr;
-ID3D11InputLayout*		Sprite::m_pVertexLayout	= nullptr;
-ID3D11Buffer*				Sprite::m_pConstantBuffer	= nullptr;
-ID3D11BlendState*		Sprite::m_pBlendState		= nullptr;
-D3DXVECTOR4				Sprite::m_color;
+float								Sprite::m_fAlpha;
 D3D11_BLEND_DESC		Sprite::m_dd;
-D3DXMATRIX					Sprite::m_view;
-D3DXMATRIX					Sprite::m_proj;
+D3DXMATRIX					Sprite::m_mView;
+D3DXMATRIX					Sprite::m_mProj;
+D3DXVECTOR4				Sprite::m_vColor;
+ID3D11Device*				Sprite::m_pDevice = nullptr;
+ID3D11DeviceContext*	Sprite::m_pDeviceContext = nullptr;
+ID3D11SamplerState*	Sprite::m_pSampleLinear = nullptr;
+ID3D11VertexShader*	Sprite::m_pVertexShader = nullptr;
+ID3D11PixelShader*		Sprite::m_pPixelShader = nullptr;
+ID3D11InputLayout*		Sprite::m_pVertexLayout = nullptr;
+ID3D11Buffer*				Sprite::m_pConstantBuffer = nullptr;
+ID3D11BlendState*		Sprite::m_pBlendState = nullptr;
 
 /*
 	@brief	コンストラクタ
 */
 Sprite::Sprite()
-	:m_pVertexBuffer(nullptr)
-	, m_pTexture(nullptr)
-	, m_RectBuffer(nullptr)
-	, m_scale(1)
+	:m_fScale(1.0f)
 {
 	ZeroMemory(this, sizeof(Sprite));
 }
@@ -37,16 +35,18 @@ Sprite::Sprite()
 Sprite::~Sprite()
 {
 	SAFE_RELEASE(m_pVertexBuffer);
-	SAFE_RELEASE(m_pTexture);
 	SAFE_RELEASE(m_RectBuffer);
+	SAFE_RELEASE(m_pTexture);
 }
 
 /*
 	@brief	初期化
 */
-HRESULT Sprite::Init(ID3D11DeviceContext* deviceContext)
+HRESULT Sprite::Init(ID3D11DeviceContext* pContext)
 {
-	m_pDeviceContext = deviceContext;
+	m_vColor = D3DXVECTOR4(1, 1, 1, 1);
+	m_fAlpha = m_vColor.w;
+	m_pDeviceContext = pContext;
 	m_pDeviceContext->GetDevice(&m_pDevice);
 
 	//テクスチャー用サンプラー作成
@@ -58,23 +58,23 @@ HRESULT Sprite::Init(ID3D11DeviceContext* deviceContext)
 	SamDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 	m_pDevice->CreateSamplerState(&SamDesc, &m_pSampleLinear);
 
-	//hlslファイル読み込み ブロブ作成
+	//hlslファイル読み込み ブロブ作成　ブロブとはシェーダーの塊みたいなもの。XXシェーダーとして特徴を持たない。後で各種シェーダーに成り得る。
 	ID3DBlob *pCompiledShader = NULL;
 	ID3DBlob *pErrors = NULL;
 	//ブロブからバーテックスシェーダー作成
-	if (FAILED(D3DX11CompileFromFile(MAKEINTRESOURCE(SPRITE_ID), NULL, NULL, "VS", "vs_5_0", 0, 0, NULL, &pCompiledShader, &pErrors, NULL)))
+	if (FAILED(D3DX11CompileFromResource(NULL, MAKEINTRESOURCE(SPRITE_ID), NULL, NULL, NULL, "VS", "vs_5_0", 0, 0, NULL, &pCompiledShader, &pErrors, NULL)))
 	{
-		MessageBox(0, L"Sprite.hlsl読み込み失敗(VS)", NULL, MB_OK);
+		MessageBox(0, L"hlsl読み込み失敗", NULL, MB_OK);
 		return E_FAIL;
 	}
 	SAFE_RELEASE(pErrors);
+
 	if (FAILED(m_pDevice->CreateVertexShader(pCompiledShader->GetBufferPointer(), pCompiledShader->GetBufferSize(), NULL, &m_pVertexShader)))
 	{
 		SAFE_RELEASE(pCompiledShader);
-		MessageBox(0, L"Sprite:バーテックスシェーダー作成失敗", NULL, MB_OK);
+		MessageBox(0, L"バーテックスシェーダー作成失敗", NULL, MB_OK);
 		return E_FAIL;
 	}
-
 	//頂点インプットレイアウトを定義
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
@@ -85,32 +85,30 @@ HRESULT Sprite::Init(ID3D11DeviceContext* deviceContext)
 
 	//頂点インプットレイアウトを作成
 	if (FAILED(m_pDevice->CreateInputLayout(layout, numElements, pCompiledShader->GetBufferPointer(), pCompiledShader->GetBufferSize(), &m_pVertexLayout)))
-	{
 		return FALSE;
-	}
 	//ブロブからピクセルシェーダー作成
-	if (FAILED(D3DX11CompileFromFile(MAKEINTRESOURCE(SPRITE_ID), NULL, NULL, "PS", "ps_5_0", 0, 0, NULL, &pCompiledShader, &pErrors, NULL)))
+	if (FAILED(D3DX11CompileFromResource(NULL, MAKEINTRESOURCE(SPRITE_ID), NULL, NULL, NULL, "PS", "ps_5_0", 0, 0, NULL, &pCompiledShader, &pErrors, NULL)))
 	{
-		MessageBox(0, L"Sprite.hlsl読み込み失敗(PS)", NULL, MB_OK);
+		MessageBox(0, L"hlsl読み込み失敗", NULL, MB_OK);
 		return E_FAIL;
 	}
 	SAFE_RELEASE(pErrors);
 	if (FAILED(m_pDevice->CreatePixelShader(pCompiledShader->GetBufferPointer(), pCompiledShader->GetBufferSize(), NULL, &m_pPixelShader)))
 	{
 		SAFE_RELEASE(pCompiledShader);
-		MessageBox(0, L"Sprite:ピクセルシェーダー作成失敗", NULL, MB_OK);
+		MessageBox(0, L"ピクセルシェーダー作成失敗", NULL, MB_OK);
 		return E_FAIL;
 	}
 	SAFE_RELEASE(pCompiledShader);
-
-	//コンスタントバッファー作成
+	//コンスタントバッファー作成　ここでは変換行列渡し用
 	D3D11_BUFFER_DESC cb;
 	cb.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	cb.ByteWidth = sizeof(SIMPLESHADER_CONSTANT_BUFFER);
+	cb.ByteWidth = sizeof(SPRITE_CONSTANT_BUFFER);
 	cb.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	cb.MiscFlags = 0;
 	cb.StructureByteStride = 0;
 	cb.Usage = D3D11_USAGE_DYNAMIC;
+
 	if (FAILED(m_pDevice->CreateBuffer(&cb, NULL, &m_pConstantBuffer)))
 	{
 		return E_FAIL;
@@ -134,48 +132,34 @@ HRESULT Sprite::Init(ID3D11DeviceContext* deviceContext)
 	{
 		return E_FAIL;
 	}
+
 	return S_OK;
 }
 
 /*
 	@brief	解放
 */
-void Sprite::Destroy()
+void Sprite::Destory()
 {
-	SAFE_RELEASE(m_pDevice);
-	SAFE_RELEASE(m_pDeviceContext);
-	SAFE_RELEASE(m_pSampleLinear);
-	SAFE_RELEASE(m_pVertexShader);
-	SAFE_RELEASE(m_pPixelShader);
-	SAFE_RELEASE(m_pVertexLayout);
-	SAFE_RELEASE(m_pConstantBuffer);
-	SAFE_RELEASE(m_pBlendState);
+
 }
 
 /*
-	@brief	カメラセット
+	@brief テクスチャのロード
 */
-void Sprite::SetCamera(D3DXMATRIX view, D3DXMATRIX proj)
+HRESULT Sprite::LoadTexture(LPCWSTR name, D3DXVECTOR2 texsize, GrapRect _Rect)
 {
-	m_view = view;
-	m_proj = proj;
-}
+	m_Size = texsize;
+	GrapRect rect = GrapRect(0.0f, 0.0f, 1.0f / m_Size.x, 1.0f / m_Size.y);
 
-/*
-	@brief	テクスチャのロード
-*/
-HRESULT Sprite::LoadTexture(LPCWSTR texname, D3DXVECTOR2 texsize, GrapRect _Rect, int animSpeed)
-{
-	m_size = texsize;
-	m_animSpeed = animSpeed;
-	GrapRect rect = GrapRect(0.0f, 0.0f, 1.0f / m_size.x, 1.0f / m_size.y);
 	SimpleVertex vertices[] =
 	{
-		D3DXVECTOR3(0, texsize.y, 0), D3DXVECTOR2(_Rect.m_left, _Rect.m_bottom),			//頂点1
-		D3DXVECTOR3(0, 0, 0), D3DXVECTOR2(_Rect.m_left, _Rect.m_top),						//頂点2
-		D3DXVECTOR3(texsize.x,texsize.y, 0), D3DXVECTOR2(_Rect.m_right, _Rect.m_bottom),	//頂点3
-		D3DXVECTOR3(texsize.x, 0, 0), D3DXVECTOR2(_Rect.m_right, _Rect.m_top),				//頂点4
+		D3DXVECTOR3(texsize.x, texsize.y, 0), D3DXVECTOR2(_Rect.m_left, _Rect.m_bottom),			//頂点1,
+		D3DXVECTOR3(texsize.x, 0, 0), D3DXVECTOR2(_Rect.m_left, _Rect.m_top),						//頂点2
+		D3DXVECTOR3(0,texsize.y, 0), D3DXVECTOR2(_Rect.m_right, _Rect.m_bottom),	//頂点3
+		D3DXVECTOR3(0, 0, 0), D3DXVECTOR2(_Rect.m_right, _Rect.m_top),				//頂点4
 	};
+
 
 	D3D11_BUFFER_DESC bd;
 	bd.Usage = D3D11_USAGE_DEFAULT;
@@ -186,35 +170,36 @@ HRESULT Sprite::LoadTexture(LPCWSTR texname, D3DXVECTOR2 texsize, GrapRect _Rect
 
 	D3D11_SUBRESOURCE_DATA InitData;
 	InitData.pSysMem = vertices;
+	//ID3D11Device* device = m_pDevice;
 	if (FAILED(m_pDevice->CreateBuffer(&bd, &InitData, &m_pVertexBuffer)))
 	{
 		return E_FAIL;
 	}
 
+	LPCWSTR texturename = name;
 	//テクスチャーを作成
-	if (FAILED(D3DX11CreateShaderResourceViewFromFile(m_pDevice, texname, NULL, NULL, &m_pTexture, NULL)))
+	if (FAILED(D3DX11CreateShaderResourceViewFromFile(m_pDevice, texturename, NULL, NULL, &m_pTexture, NULL)))
 	{
 		return E_FAIL;
 	}
 
 	return S_OK;
-
 }
 
 /*
 	@brief	描画
 */
-void Sprite::Render(D3DXVECTOR2 pos, D3DXVECTOR3 radian, float scale)
+void Sprite::Render(D3DXVECTOR2 pos, D3DXVECTOR2 scale)
 {
 	//トポロジー
 	m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
 	//頂点インプットレイアウトをセット
 	m_pDeviceContext->IASetInputLayout(m_pVertexLayout);
 
 	//使用するシェーダーの登録
 	m_pDeviceContext->VSSetShader(m_pVertexShader, NULL, 0);
 	m_pDeviceContext->PSSetShader(m_pPixelShader, NULL, 0);
-
 	//このコンスタントバッファーを使うシェーダーの登録
 	m_pDeviceContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 	m_pDeviceContext->PSSetConstantBuffers(0, 1, &m_pConstantBuffer);
@@ -224,52 +209,28 @@ void Sprite::Render(D3DXVECTOR2 pos, D3DXVECTOR3 radian, float scale)
 	m_pDeviceContext->PSSetShaderResources(0, 1, &m_pTexture);
 
 	//ワールド変換
-	D3DXMATRIX mWorld,mTrans,mRot,mScale;
-	D3DXMatrixTranslation(&mTrans, pos.x, pos.y, -1);
-	D3DXMatrixRotationYawPitchRoll(&mRot, radian.y, radian.x, radian.z);
-	D3DXMatrixScaling(&mScale, scale, scale, scale);
-	mWorld = mScale*mRot*mTrans;
-
+	D3DXMATRIX mWorld, mTran, mScale;
+	//D3DXMatrixIdentity(&mWorld);
+	D3DXMatrixTranslation(&mTran, pos.x, pos.y, -1);
+	//スケール変換
+	//D3DXMatrixIdentity(&mScale);
+	D3DXMatrixScaling(&mScale, scale.x, scale.y, 1);
+	mWorld = mScale*mTran;
 	//シェーダーのコンスタントバッファーに各種データを渡す	
 	D3D11_MAPPED_SUBRESOURCE pData;
-	SIMPLESHADER_CONSTANT_BUFFER cb;
-	if (SUCCEEDED(m_pDeviceContext->Map(m_pConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &pData)))
-	{
-		//ワールド、カメラ、射影行列を渡す
-		D3DXMATRIX m = mWorld*m_view*m_proj;
-		D3DXMatrixTranspose(&m, &m);
-		cb.mWVP = m;
-		//カラーを渡す
-		cb.vColor = m_color;
-		//透明度を渡す
-		cb.fAlpha.x = m_alpha;
+	SPRITE_CONSTANT_BUFFER cb;
+	m_pDeviceContext->Map(m_pConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &pData);
+	//ワールド、カメラ、射影行列を渡す
+	D3DXMATRIX m = mWorld*m_mView*m_mProj;
+	D3DXMatrixTranspose(&m, &m);
+	cb.mWVP = m;
+	//カラーを渡す
+	cb.vColor = m_vColor;
+	//透明度を渡す
+	cb.fAlpha.x = m_fAlpha;
 
-		//テクスチャースクロールの増分を渡す
-		static D3DXVECTOR2 TexScroll(0, 0);
-		static int count = 0;
-		if (count < m_animSpeed) count++;
-		if (count >= m_animSpeed)
-		{
-			TexScroll.x += 1.0f / m_size.x;
-			count = 0;
-			m_animCount++;
-			if ((m_animCount % (int)m_size.x) == 0)
-			{
-				TexScroll.y += 1.0f / m_size.y;
-				TexScroll.x = 0.0f;
-			}
-			if ((m_animCount % (int)(m_size.x * m_size.y)) == 0)
-			{
-				m_animCount = 0;
-				TexScroll.x = 0.0f;
-				TexScroll.y = 0.0f;
-			}
-		}
-		cb.texScroll = D3DXVECTOR4(TexScroll.x, TexScroll.y, 0, 0);
-
-		memcpy_s(pData.pData, pData.RowPitch, (void*)(&cb), sizeof(cb));
-		m_pDeviceContext->Unmap(m_pConstantBuffer, 0);
-	}
+	memcpy_s(pData.pData, pData.RowPitch, (void*)(&cb), sizeof(cb));
+	m_pDeviceContext->Unmap(m_pConstantBuffer, 0);
 	//バーテックスバッファーをセット
 	UINT stride = sizeof(SimpleVertex);
 	UINT offset = 0;
@@ -279,5 +240,30 @@ void Sprite::Render(D3DXVECTOR2 pos, D3DXVECTOR3 radian, float scale)
 	UINT ColorKey = 0xffffffff;
 	m_pDeviceContext->OMSetBlendState(m_pBlendState, NULL, ColorKey);
 	m_pDeviceContext->Draw(4, 0);
-	//m_pDeviceContext->OMSetBlendState(0, NULL, ColorKey);
+}
+
+/*
+	@brief	カメラのセット
+*/
+void Sprite::SetCamera(D3DXMATRIX view, D3DXMATRIX proj)
+{
+	m_mView = view;
+	m_mProj = proj;
+
+	StartBlendState();//ブレンドを有効に
+
+					  // ビュートランスフォーム（視点座標変換）
+	D3DXVECTOR3 vEyePt(0.0f, 0.0f, -1); //カメラ（視点）位置
+	D3DXVECTOR3 vLookatPt(0.0f, 0.0f, 0.0f);//注視位置
+	D3DXVECTOR3 vUpVec(0.0f, 1.0f, 0.0f);//上方位置
+	D3DXMatrixLookAtLH(&m_mView, &vEyePt, &vLookatPt, &vUpVec);
+
+	// プロジェクショントランスフォーム（射影変換）
+	D3DMATRIX mOtho = {
+		2.0f / (float)(window_width), 0.0f, 0.0f, 0.0f,
+		0.0f, -2.0f / (float)(window_height), 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		-1.0f, 1.0f, 0.0f, 1.0f
+	};
+	m_mProj = mOtho;
 }

@@ -6,19 +6,17 @@
 */
 #include "DirectX.h"
 
-HWND								DirectX::m_wnd;
-ID3D11Device*					DirectX::m_pDevice							= nullptr;
-ID3D11DeviceContext*		DirectX::m_pDeviceContext				= nullptr;
-IDXGISwapChain*				DirectX::m_pSwapChain						= nullptr;
-ID3D11RenderTargetView*	DirectX::m_pBackBuffer_TexRTV			= nullptr;
-ID3D11DepthStencilView*	DirectX::m_pBackBuffer_DSTexDSV		= nullptr;
-ID3D11Texture2D*				DirectX::m_pBackBuffer_DSTex			= nullptr;
-
-
 /*
 	@brief	コンストラクタ
 */
 DirectX::DirectX()
+	:m_pSceneManaer(nullptr)
+	, m_pDevice(nullptr)
+	, m_pDeviceContext(nullptr)
+	, m_pSwapChain(nullptr)
+	, m_pBackBuffer_TexRTV(nullptr)
+	, m_pBackBuffer_DSTexDSV(nullptr)
+	, m_pBackBuffer_DSTex(nullptr)
 {
 }
 
@@ -35,7 +33,7 @@ DirectX::~DirectX()
 */
 HRESULT DirectX::InitD3D(HWND wnd)
 {
-	m_wnd = wnd;
+	m_hWnd = wnd;
 	// デバイスとスワップチェーンの作成
 	DXGI_SWAP_CHAIN_DESC sd;
 	ZeroMemory(&sd, sizeof(sd));
@@ -46,7 +44,7 @@ HRESULT DirectX::InitD3D(HWND wnd)
 	sd.BufferDesc.RefreshRate.Numerator = 60;
 	sd.BufferDesc.RefreshRate.Denominator = 1;
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	sd.OutputWindow = m_wnd;
+	sd.OutputWindow = m_hWnd;
 	sd.SampleDesc.Count = 1;
 	sd.SampleDesc.Quality = 0;
 	sd.Windowed = TRUE;
@@ -137,7 +135,12 @@ LRESULT DirectX::MsgProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 */
 void DirectX::AppInit()
 {
+	//スプライトの初期化
+	Sprite::Init(m_pDeviceContext);
 
+	//シーンの作成
+	m_pSceneManaer = new SceneRoot;
+	m_pSceneManaer->Init();
 }
 
 /*
@@ -145,19 +148,33 @@ void DirectX::AppInit()
 */
 void DirectX::Update()
 {
+	//シーンの更新
+	SceneBase* scene = nullptr;
+	scene = m_pSceneManaer->Update(m_pSceneManaer);
 
 
 	//描画
-	//画面クリア（実際は単色で画面を塗りつぶす処理）
+	//画面クリア
 	float ClearColor[4] = { 0,0,0,0 };
 	m_pDeviceContext->ClearRenderTargetView(m_pBackBuffer_TexRTV, ClearColor);
 	m_pDeviceContext->ClearDepthStencilView(m_pBackBuffer_DSTexDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-	//
+	//カメラの設定
+	SetCamera();
 
+	//シーンの描画
+	m_pSceneManaer->Render();
+	//画面の更新
 	m_pSwapChain->Present(0, 0);
 }
 
+/*
+	@brief	描画の為のカメラ設定
+*/
+void  DirectX::SetCamera()
+{
+	Sprite::SetCamera(Camera::GetView(), Camera::GetProj());
+}
 
 /*
 	@brief	アプリケーション処理
@@ -169,7 +186,7 @@ void DirectX::Loop()
 
 	// メッセージループ
 	MSG msg = { 0 };
-	m_start = timeGetTime();		//クロックの取得
+	m_lStartClock = timeGetTime();		//クロックの取得
 	ZeroMemory(&msg, sizeof(msg));
 	while (msg.message != WM_QUIT)
 	{
@@ -183,11 +200,11 @@ void DirectX::Loop()
 			Update();	//更新
 
 			//FPS調整
-			while (timeGetTime() - m_start < 1000 / fps)
+			while (timeGetTime() - m_lStartClock < 1000 / fps)
 			{
 				Sleep(1);
 			}
-			m_start = timeGetTime();
+			m_lStartClock = timeGetTime();
 		}
 	}
 
@@ -200,7 +217,7 @@ void DirectX::Loop()
 */
 void DirectX::DestroyD3D()
 {
-
+	SAFE_DELETE(m_pSceneManaer);
 	SAFE_RELEASE(m_pSwapChain);
 	SAFE_RELEASE(m_pBackBuffer_TexRTV);
 	SAFE_RELEASE(m_pBackBuffer_DSTexDSV);

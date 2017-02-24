@@ -8,10 +8,14 @@
 #include "Scene.h"
 #include "SceneRoot.h"
 #include "SceneMain.h"
+#include "Camera.h"
+#include "Sprite.h"
 
 class SceneTitle:public Scene
 {
 private:
+	Sprite* m_pUItitle;
+	Camera* m_pCamera;
 	void Update();
 public:
 	SceneTitle();
