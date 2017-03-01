@@ -9,6 +9,24 @@
 #include "GameObject.h"
 class Camera :public GameObject
 {
+public:
+	Camera();
+	~Camera();
+
+	void Init();				//初期化
+	void Update();		//更新
+	void Render();		//描画
+	void Destroy();		//解放
+
+	//ゲッター関数
+	static D3DXMATRIX GetView() { return m_view; };
+	static D3DXMATRIX GetProj() { return m_proj; };
+	//セッター関数
+	void SetPivotPos(D3DXVECTOR3 pivot) { m_pivotPos = pivot; };
+	void SetPos(D3DXVECTOR3 pos) { m_pos = pos; };
+	void SetLookAtPos(D3DXVECTOR3 look) { m_lookAtPos = look; };
+	void SetRot(D3DXVECTOR3 rot) { m_rot = rot; };
+private:
 	float m_fovY;
 	float m_nearZ;
 	float m_farZ;
@@ -18,22 +36,6 @@ class Camera :public GameObject
 	D3DXVECTOR3 m_rot;			//回転
 	static D3DXMATRIX m_view;	//ビュートランスフォーム
 	static D3DXMATRIX m_proj;	//射影変換
-public:
-	Camera();
-	~Camera();
 
-	void Init();				//初期化
-	void Update();		//更新
-	void Render();		//描画
-	void Destroy();		//解放
-	
-	//ゲッター関数
-	static D3DXMATRIX GetView() { return m_view; };
-	static D3DXMATRIX GetProj() { return m_proj; };
-	//セッター関数
-	void SetPivotPos(D3DXVECTOR3 pivot) { m_pivotPos = pivot; };
-	void SetPos(D3DXVECTOR3 pos) { m_pos = pos; };	
-	void SetLookAtPos(D3DXVECTOR3 look) { m_lookAtPos = look; };
-	void SetRot(D3DXVECTOR3 rot) { m_rot = rot; };
 };
 

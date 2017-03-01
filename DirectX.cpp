@@ -10,13 +10,13 @@
 	@brief	コンストラクタ
 */
 DirectX::DirectX()
-	:m_pSceneManaer(nullptr)
-	, m_pDevice(nullptr)
-	, m_pDeviceContext(nullptr)
-	, m_pSwapChain(nullptr)
-	, m_pBackBuffer_TexRTV(nullptr)
-	, m_pBackBuffer_DSTexDSV(nullptr)
-	, m_pBackBuffer_DSTex(nullptr)
+	:m_sceneManager(nullptr)
+	, m_device(nullptr)
+	, m_deviceContext(nullptr)
+	, m_swapChain(nullptr)
+	, m_backBuffer_TexRTV(nullptr)
+	, m_backBuffer_DSTexDSV(nullptr)
+	, m_backBuffer_DSTex(nullptr)
 {
 }
 
@@ -33,7 +33,7 @@ DirectX::~DirectX()
 */
 HRESULT DirectX::InitD3D(HWND wnd)
 {
-	m_hWnd = wnd;
+	m_wnd = wnd;
 	// デバイスとスワップチェーンの作成
 	DXGI_SWAP_CHAIN_DESC sd;
 	ZeroMemory(&sd, sizeof(sd));
@@ -44,7 +44,7 @@ HRESULT DirectX::InitD3D(HWND wnd)
 	sd.BufferDesc.RefreshRate.Numerator = 60;
 	sd.BufferDesc.RefreshRate.Denominator = 1;
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	sd.OutputWindow = m_hWnd;
+	sd.OutputWindow = m_wnd;
 	sd.SampleDesc.Count = 1;
 	sd.SampleDesc.Quality = 0;
 	sd.Windowed = TRUE;
@@ -53,8 +53,8 @@ HRESULT DirectX::InitD3D(HWND wnd)
 	D3D_FEATURE_LEVEL* pFeatureLevel = NULL;
 
 	if (FAILED(D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL,
-		0, &pFeatureLevels, 1, D3D11_SDK_VERSION, &sd, &m_pSwapChain, &m_pDevice,
-		pFeatureLevel, &m_pDeviceContext)))
+		0, &pFeatureLevels, 1, D3D11_SDK_VERSION, &sd, &m_swapChain, &m_device,
+		pFeatureLevel, &m_deviceContext)))
 	{
 		return FALSE;
 	}
@@ -62,9 +62,9 @@ HRESULT DirectX::InitD3D(HWND wnd)
 
 	//バックバッファーテクスチャーを取得（既にあるので作成ではない）
 	ID3D11Texture2D *pBackBuffer_Tex;
-	m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer_Tex);
+	m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer_Tex);
 	//そのテクスチャーに対しレンダーターゲットビュー(RTV)を作成
-	m_pDevice->CreateRenderTargetView(pBackBuffer_Tex, NULL, &m_pBackBuffer_TexRTV);
+	m_device->CreateRenderTargetView(pBackBuffer_Tex, NULL, &m_backBuffer_TexRTV);
 	SAFE_RELEASE(pBackBuffer_Tex);
 
 	//デプスステンシルビュー用のテクスチャーを作成
@@ -80,12 +80,12 @@ HRESULT DirectX::InitD3D(HWND wnd)
 	descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 	descDepth.CPUAccessFlags = 0;
 	descDepth.MiscFlags = 0;
-	m_pDevice->CreateTexture2D(&descDepth, NULL, &m_pBackBuffer_DSTex);
+	m_device->CreateTexture2D(&descDepth, NULL, &m_backBuffer_DSTex);
 	//そのテクスチャーに対しデプスステンシルビュー(DSV)を作成
-	m_pDevice->CreateDepthStencilView(m_pBackBuffer_DSTex, NULL, &m_pBackBuffer_DSTexDSV);
+	m_device->CreateDepthStencilView(m_backBuffer_DSTex, NULL, &m_backBuffer_DSTexDSV);
 
 	//レンダーターゲットビューと深度ステンシルビューをパイプラインにバインド
-	m_pDeviceContext->OMSetRenderTargets(1, &m_pBackBuffer_TexRTV, m_pBackBuffer_DSTexDSV);
+	m_deviceContext->OMSetRenderTargets(1, &m_backBuffer_TexRTV, m_backBuffer_DSTexDSV);
 	//ビューポートの設定
 	D3D11_VIEWPORT vp;
 	vp.Width = window_width;
@@ -94,15 +94,15 @@ HRESULT DirectX::InitD3D(HWND wnd)
 	vp.MaxDepth = 1.0f;
 	vp.TopLeftX = 0;
 	vp.TopLeftY = 0;
-	m_pDeviceContext->RSSetViewports(1, &vp);
+	m_deviceContext->RSSetViewports(1, &vp);
 	//ラスタライズ設定
 	D3D11_RASTERIZER_DESC rdc;
 	ZeroMemory(&rdc, sizeof(rdc));
 	rdc.CullMode = D3D11_CULL_NONE;
 	rdc.FillMode = D3D11_FILL_SOLID;
 	ID3D11RasterizerState* pIr = NULL;
-	m_pDevice->CreateRasterizerState(&rdc, &pIr);
-	m_pDeviceContext->RSSetState(pIr);
+	m_device->CreateRasterizerState(&rdc, &pIr);
+	m_deviceContext->RSSetState(pIr);
 	SAFE_RELEASE(pIr);
 
 	return S_OK;
@@ -136,11 +136,11 @@ LRESULT DirectX::MsgProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 void DirectX::AppInit()
 {
 	//スプライトの初期化
-	Sprite::Init(m_pDeviceContext);
+	Sprite::Init(m_deviceContext);
 
 	//シーンの作成
-	m_pSceneManaer = new SceneRoot;
-	m_pSceneManaer->Init();
+	m_sceneManager = new SceneRoot;
+	m_sceneManager->Init();
 }
 
 /*
@@ -150,22 +150,22 @@ void DirectX::Update()
 {
 	//シーンの更新
 	SceneBase* scene = nullptr;
-	scene = m_pSceneManaer->Update(m_pSceneManaer);
+	scene = m_sceneManager->Update(m_sceneManager);
 
 
 	//描画
 	//画面クリア
 	float ClearColor[4] = { 0,0,0,0 };
-	m_pDeviceContext->ClearRenderTargetView(m_pBackBuffer_TexRTV, ClearColor);
-	m_pDeviceContext->ClearDepthStencilView(m_pBackBuffer_DSTexDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	m_deviceContext->ClearRenderTargetView(m_backBuffer_TexRTV, ClearColor);
+	m_deviceContext->ClearDepthStencilView(m_backBuffer_DSTexDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	//カメラの設定
 	SetCamera();
 
 	//シーンの描画
-	m_pSceneManaer->Render();
+	m_sceneManager->Render();
 	//画面の更新
-	m_pSwapChain->Present(0, 0);
+	m_swapChain->Present(0, 0);
 }
 
 /*
@@ -186,7 +186,7 @@ void DirectX::Loop()
 
 	// メッセージループ
 	MSG msg = { 0 };
-	m_lStartClock = timeGetTime();		//クロックの取得
+	m_startClock = timeGetTime();		//クロックの取得
 	ZeroMemory(&msg, sizeof(msg));
 	while (msg.message != WM_QUIT)
 	{
@@ -200,11 +200,11 @@ void DirectX::Loop()
 			Update();	//更新
 
 			//FPS調整
-			while (timeGetTime() - m_lStartClock < 1000 / fps)
+			while (timeGetTime() - m_startClock < 1000 / fps)
 			{
 				Sleep(1);
 			}
-			m_lStartClock = timeGetTime();
+			m_startClock = timeGetTime();
 		}
 	}
 
@@ -217,11 +217,11 @@ void DirectX::Loop()
 */
 void DirectX::DestroyD3D()
 {
-	SAFE_DELETE(m_pSceneManaer);
-	SAFE_RELEASE(m_pSwapChain);
-	SAFE_RELEASE(m_pBackBuffer_TexRTV);
-	SAFE_RELEASE(m_pBackBuffer_DSTexDSV);
-	SAFE_RELEASE(m_pBackBuffer_DSTex);
-	SAFE_RELEASE(m_pDevice);
-	SAFE_RELEASE(m_pDeviceContext);
+	SAFE_DELETE(m_sceneManager);
+	SAFE_RELEASE(m_swapChain);
+	SAFE_RELEASE(m_backBuffer_TexRTV);
+	SAFE_RELEASE(m_backBuffer_DSTexDSV);
+	SAFE_RELEASE(m_backBuffer_DSTex);
+	SAFE_RELEASE(m_device);
+	SAFE_RELEASE(m_deviceContext);
 }

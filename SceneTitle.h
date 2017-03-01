@@ -13,10 +13,6 @@
 
 class SceneTitle:public Scene
 {
-private:
-	Sprite* m_pUItitle;
-	Camera* m_pCamera;
-	void Update();
 public:
 	SceneTitle();
 	~SceneTitle();
@@ -25,4 +21,9 @@ public:
 	SceneBase* Update(SceneRoot* root);
 	void Render();
 	void Destroy();
+private:
+	Sprite* m_uiTitle;
+	Camera* m_camera;
+	void Update();
+
 };

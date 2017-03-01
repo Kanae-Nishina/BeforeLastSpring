@@ -10,8 +10,8 @@
 	@brief	コンストラクタ
 */
 SceneTitle::SceneTitle()
-	: m_pCamera(nullptr)
-	,m_pUItitle(nullptr)
+	: m_camera(nullptr)
+	,m_uiTitle(nullptr)
 {
 }
 
@@ -27,9 +27,9 @@ SceneTitle::~SceneTitle()
 */
 void SceneTitle::Init()
 {
-	m_pCamera = new Camera;
-	m_pUItitle = new Sprite;
-	m_pUItitle->LoadTexture(L"Texture/title2.png", { 1000,420 }, { 0,1,1,0 });
+	m_camera = new Camera;
+	m_uiTitle = new Sprite;
+	m_uiTitle->LoadTexture(L"Texture/pipo-2017phoenix.png", { 2,10 }, {(float)window_width,(float)window_height}, 5);
 }
 
 /*
@@ -37,8 +37,8 @@ void SceneTitle::Init()
 */
 void SceneTitle::Destroy()
 {
-	SAFE_DELETE(m_pCamera);
-	SAFE_DELETE(m_pUItitle);
+	SAFE_DELETE(m_camera);
+	SAFE_DELETE(m_uiTitle);
 }
 
 /*
@@ -64,7 +64,7 @@ void SceneTitle::Update()
 */
 void SceneTitle::Render()
 {
-	m_pUItitle->Render({ 0,0 }, { 1,1 });
-	m_pCamera->Render();
+	m_uiTitle->Render({ 0,0 }, { 1,1 });
+	m_camera->Render();
 }
 
