@@ -10,7 +10,7 @@
 	@brief	コンストラクタ
 */
 SceneRoot::SceneRoot()
-	:m_pScene(nullptr)
+	:m_scene(nullptr)
 {
 }
 
@@ -26,8 +26,8 @@ SceneRoot::~SceneRoot()
 */
 void SceneRoot::Init()
 {
-	m_pScene = new SceneTitle;
-	m_pScene->Init();
+	m_scene = new SceneTitle;
+	m_scene->Init();
 }
 
 
@@ -36,8 +36,8 @@ void SceneRoot::Init()
 */
 void SceneRoot::Destroy()
 {
-	delete m_pScene;
-	m_pScene = nullptr;
+	delete m_scene;
+	m_scene = nullptr;
 }
 
 /*
@@ -46,17 +46,17 @@ void SceneRoot::Destroy()
 SceneBase* SceneRoot::Update(SceneBase* scene)
 {
 	//シーンの実行
-	SceneBase* next = m_pScene->Update(this);
+	SceneBase* next = m_scene->Update(this);
 
 	//戻り値が現在のシーンと異なっていればシーン遷移
-	if (next != m_pScene)
+	if (next != m_scene)
 	{
 		Scene* casted = dynamic_cast<Scene*>(next);
-		m_pScene->Destroy();
-		delete m_pScene;
+		m_scene->Destroy();
+		delete m_scene;
 
-		m_pScene = casted;
-		m_pScene->Init();
+		m_scene = casted;
+		m_scene->Init();
 	}
 	return this;
 }
@@ -66,5 +66,5 @@ SceneBase* SceneRoot::Update(SceneBase* scene)
 */
 void SceneRoot::Render()
 {
-	m_pScene->Render();
+	m_scene->Render();
 }
