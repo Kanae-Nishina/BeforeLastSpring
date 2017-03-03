@@ -2,3 +2,5 @@ Effekseer/
 Debug/
 *.APS
 *.filters
+*.db
+*.suo
