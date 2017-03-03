@@ -8,6 +8,8 @@
 #include "Scene.h"
 #include "SceneRoot.h"
 #include "SceneMain.h"
+#include "Camera.h"
+#include "Sprite.h"
 
 class SceneTitle:public Scene
 {
@@ -19,4 +21,9 @@ public:
 	SceneBase* Update(SceneRoot* root);
 	void Render();
 	void Destroy();
+private:
+	Sprite* m_uiTitle;
+	Camera* m_camera;
+	void Update();
+
 };

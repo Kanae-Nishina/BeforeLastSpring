@@ -1,7 +1,7 @@
 /*
-	@file	Main.cpp
-	@brief	プロジェクトのメイン
-	@date	2017/02/19
+	@file			Main.cpp
+	@brief		プロジェクトのメイン
+	@date		2017/02/19
 	@author	仁科香苗
 */
 #include "DirectX.h"

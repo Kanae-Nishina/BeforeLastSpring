@@ -10,8 +10,6 @@
 
 class SceneRoot :public SceneBase
 {
-private:
-	Scene* m_pScene;		//現在のシーン
 public:
 	SceneRoot();
 	~SceneRoot();
@@ -20,4 +18,7 @@ public:
 	SceneBase* Update(SceneBase* scene);	//更新
 	void Render();							//描画
 	void Destroy();							//解放
+private:
+	Scene* m_scene;		//現在のシーン
+
 };
