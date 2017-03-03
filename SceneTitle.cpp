@@ -29,7 +29,7 @@ void SceneTitle::Init()
 {
 	m_camera = new Camera;
 	m_uiTitle = new Sprite;
-	m_uiTitle->LoadTexture(L"Texture/pipo-2017phoenix.png", { 2,10 }, {(float)window_width,(float)window_height}, 5);
+	m_uiTitle->LoadTexture(L"Texture/pipo-2017phoenix.png", { 2,10 }, {(float)window_width,(float)window_height}, 2);
 }
 
 /*
