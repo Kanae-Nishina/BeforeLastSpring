@@ -3,6 +3,10 @@
 	@brief	DirectXを使用する為のクラス
 	@date	2017/02/18
 	@author	仁科香苗
+
+	@brief		サウンド生成の呼び出しを追記
+	@date		2017/03/02
+	@author	金澤信芳
 */
 #pragma once
 #include "Common.h"
@@ -10,6 +14,7 @@
 #include "Scene.h"
 #include "Camera.h"
 #include "Sprite.h"
+#include "Sound.h"
 
 class DirectX
 {
@@ -29,13 +34,13 @@ private:
 	ID3D11DepthStencilView*	m_backBuffer_DSTexDSV;
 	ID3D11Texture2D*				m_backBuffer_DSTex;
 
-	SceneRoot* m_sceneManager;		//シーンマネージャー
-	long m_startClock;								//開始時のクロック数
+	SceneRoot*						m_sceneManager;		//シーンマネージャー
+	long									m_startClock;			//開始時のクロック数
 
 	void AppInit();							//アプリケーションの初期化
 	void Update();							//アプリケーションの更新
 	void SetCamera();						//描画の為のマトリックス設定
 	void DestroyD3D();					//解放処理
-																			//アプリケーション処理
+
 };
 

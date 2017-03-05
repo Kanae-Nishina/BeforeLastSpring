@@ -160,6 +160,7 @@
     <ClInclude Include="SceneMain.h" />
     <ClInclude Include="SceneRoot.h" />
     <ClInclude Include="SceneTitle.h" />
+    <ClInclude Include="Sound.h" />
     <ClInclude Include="Sprite.h" />
   </ItemGroup>
   <ItemGroup>
@@ -170,6 +171,7 @@
     <ClCompile Include="SceneMain.cpp" />
     <ClCompile Include="SceneRoot.cpp" />
     <ClCompile Include="SceneTitle.cpp" />
+    <ClCompile Include="Sound.cpp" />
     <ClCompile Include="Sprite.cpp" />
   </ItemGroup>
   <ItemGroup>

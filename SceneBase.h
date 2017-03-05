@@ -1,10 +1,15 @@
 /*
 	@file	SceneBase.h
-	@brief	シーン管理のスーパークラス
-	@date	2017/02/18
+	@brief		シーン管理のスーパークラス
+	@date		2017/02/18
 	@author	仁科香苗
+
+	@brief		サウンドのインクルード追記
+	@date		2017/03/03
+	@author	金澤信芳
 */
 #pragma once
+#include "Sound.h"
 
 class SceneBase
 {

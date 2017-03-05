@@ -1,8 +1,12 @@
 /*
-	@file	DirectX.h
-	@brief	DirectXを使用する為のクラス
-	@date	2017/02/18
+	@file			DirectX.h
+	@brief		DirectXを使用する為のクラス
+	@date		2017/02/18
 	@author	仁科香苗
+
+	@brief		サウンド生成の呼び出しを追記
+	@date		2017/03/02
+	@author	金澤信芳
 */
 #include "DirectX.h"
 
@@ -104,6 +108,8 @@ HRESULT DirectX::InitD3D(HWND wnd)
 	m_device->CreateRasterizerState(&rdc, &pIr);
 	m_deviceContext->RSSetState(pIr);
 	SAFE_RELEASE(pIr);
+
+	Sound::getInstance().SoundSet(); // サウンドの生成
 
 	return S_OK;
 }
