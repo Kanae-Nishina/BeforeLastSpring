@@ -2,7 +2,9 @@ Effekseer/
 Debug/
 *.APS
 *.filters
+*.db
+*.suo
+*.lib
+*.dll
 *.png
 *.user
-*.lib
-FBXLib/
