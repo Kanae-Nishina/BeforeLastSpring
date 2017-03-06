@@ -21,6 +21,8 @@ public:
 	//ゲッター関数
 	static D3DXMATRIX GetView() { return m_view; };
 	static D3DXMATRIX GetProj() { return m_proj; };
+	D3DXVECTOR3 GetPivotPos() { return m_pivotPos; };
+	D3DXVECTOR3 GetLookAtPos() { return m_lookAtPos; };
 	//セッター関数
 	void SetPivotPos(D3DXVECTOR3 pivot) { m_pivotPos = pivot; };
 	void SetPos(D3DXVECTOR3 pos) { m_pos = pos; };
