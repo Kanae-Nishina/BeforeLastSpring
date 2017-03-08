@@ -1,8 +1,11 @@
 /*
-	@file	SceneTitle.h
-	@brief	タイトルシーン
-	@date	2017/02/18
-	@author	仁科香苗
+	@file				SceneTitle.h
+	@brief			タイトルシーン
+	@date			2017/02/18
+	@author		仁科香苗
+
+	@date			2017/03/05
+	@author		金澤信芳(エフェクトのインクルード追記)
 */
 #pragma once
 #include "Scene.h"
@@ -10,6 +13,7 @@
 #include "SceneMain.h"
 #include "Camera.h"
 #include "Sprite.h"
+#include "Effect/Effect.h"
 
 class SceneTitle:public Scene
 {
@@ -24,6 +28,6 @@ public:
 private:
 	Sprite* m_uiTitle;
 	Camera* m_camera;
+	Effect* m_effect;
 	void Update();
-
 };
