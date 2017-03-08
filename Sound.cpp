@@ -13,9 +13,9 @@ map<string, int> SoundIndex; // サウンド保管庫
 	@brief	コンストラクタ
 */
 Sound::Sound()
+	: m_flag(true)
 {
 	ZeroMemory(this, sizeof(Sound));
-	m_Flag = true;
 }
 
 /*
@@ -25,25 +25,25 @@ Sound::~Sound()
 {
 	for (int i = 0; i < max_wav; i++)
 	{
-		if (m_SourceVoice[i]) m_SourceVoice[i]->DestroyVoice();
+		if (m_sourceVoice[i]) m_sourceVoice[i]->DestroyVoice();
 	}
-	for (int i = 0; i<max_wav; i++) SAFE_DELETE(m_WavBuffer[i]);
-	SAFE_RELEASE(m_XAudio2);
+	for (int i = 0; i<max_wav; i++) SAFE_DELETE(m_wavBuffer[i]);
+	SAFE_RELEASE(m_audio2);
 }
 
 /*
 	@brief　サウンドの初期化
 */
-HRESULT Sound::InitSound()
+HRESULT Sound::Init()
 {
 	CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
-	if (FAILED(XAudio2Create(&m_XAudio2, 0)))
+	if (FAILED(XAudio2Create(&m_audio2, 0)))
 	{
 		CoUninitialize();
 		return E_FAIL;
 	}
-	if (FAILED(m_XAudio2->CreateMasteringVoice(&m_MasteringVoice)))
+	if (FAILED(m_audio2->CreateMasteringVoice(&m_masteringVoice)))
 	{
 		CoUninitialize();
 		return E_FAIL;
@@ -52,21 +52,22 @@ HRESULT Sound::InitSound()
 }
 
 /*
-	@brief	サウンドの準備
+	@brief	サウンドのロード
 */
-void Sound::SoundSet()
+void Sound::Set()
 {
-	InitSound(); // サウンドの初期化
+	Init(); // サウンドの初期化
 
-	SoundIndex["TEST1"] = LoadSound("Sound/BGM/DonkeyDonk.wav");
-	SoundIndex["TEST2"] = LoadSound("Sound/BGM/AO-1.wav");
+	SoundIndex["TEST1"] = Load("Sound/BGM/DonkeyDonk.wav");
+	SoundIndex["TEST2"] = Load("Sound/BGM/AO-1.wav");
+	m_sourceVoice[SoundIndex["TEST2"]]->SetVolume(1.0f, 0);
 
 }
 
 /*
 	@brief	wavファイルの読み込み
 */
-int Sound::LoadSound(char* szFileName)
+int Sound::Load(char* szFileName)
 {
 	static int iIndex = -1;
 	iIndex++;
@@ -93,17 +94,17 @@ int Sound::LoadSound(char* szFileName)
 	ckInfo.ckid = mmioFOURCC('d', 'a', 't', 'a');
 	mmioDescend(hMmio, &ckInfo, &riffckInfo, MMIO_FINDCHUNK);											//データチャンクにセット
 	dwWavSize = ckInfo.cksize;
-	m_WavBuffer[iIndex] = new BYTE[dwWavSize];
+	m_wavBuffer[iIndex] = new BYTE[dwWavSize];
 	DWORD dwOffset = ckInfo.dwDataOffset;
-	mmioRead(hMmio, (HPSTR)m_WavBuffer[iIndex], dwWavSize);
+	mmioRead(hMmio, (HPSTR)m_wavBuffer[iIndex], dwWavSize);
 
 	//ソースボイスにデータを詰め込む	
-	if (FAILED(m_XAudio2->CreateSourceVoice(&m_SourceVoice[iIndex], pwfex)))
+	if (FAILED(m_audio2->CreateSourceVoice(&m_sourceVoice[iIndex], pwfex)))
 	{
 		MessageBox(0, L"ソースボイス作成失敗", 0, MB_OK);
 		return E_FAIL;
 	}
-	m_WavSize[iIndex] = dwWavSize;
+	m_wavSize[iIndex] = dwWavSize;
 
 	return iIndex;
 }
@@ -111,57 +112,57 @@ int Sound::LoadSound(char* szFileName)
 /*
 	@brief	サウンドの再生
 */
-void  Sound::PlaySound(int SoundIndex, bool LoopFlag)
+void  Sound::PlaySound(int soundIndex, bool loopFlag)
 {
-	m_SourceVoice[SoundIndex]->Stop(0, 1);
-	m_SourceVoice[SoundIndex]->FlushSourceBuffers();
+	m_sourceVoice[soundIndex]->Stop(0, 1);
+	m_sourceVoice[soundIndex]->FlushSourceBuffers();
 	XAUDIO2_BUFFER buffer = { 0 };
-	buffer.pAudioData = m_WavBuffer[SoundIndex];
+	buffer.pAudioData = m_wavBuffer[soundIndex];
 	buffer.Flags = XAUDIO2_END_OF_STREAM;
-	buffer.AudioBytes = m_WavSize[SoundIndex];
+	buffer.AudioBytes = m_wavSize[soundIndex];
 
-	if (LoopFlag) // ループの判定
+	if (loopFlag) // ループの判定
 	{
 		buffer.LoopCount = XAUDIO2_LOOP_INFINITE;
 	}
 
-	if (FAILED(m_SourceVoice[SoundIndex]->SubmitSourceBuffer(&buffer)))
+	if (FAILED(m_sourceVoice[soundIndex]->SubmitSourceBuffer(&buffer)))
 	{
 		MessageBox(0, L"ソースボイスにサブミット失敗", 0, MB_OK);
 		return;
 	}
 
-	m_SourceVoice[SoundIndex]->Start(0, XAUDIO2_COMMIT_NOW);
+	m_sourceVoice[soundIndex]->Start(0, XAUDIO2_COMMIT_NOW);
 }
 
 /*
 	@brief	BGMの再生
 */
-void Sound::BGM_play(string BGM_mode)
+void Sound::PlayBGM(string name)
 {
-	PlaySound(SoundIndex[BGM_mode], true);
+	PlaySound(SoundIndex[name], true);
 }
 
 /*
 	@brief	BGMの停止
 */
-void Sound::BGM_stop(string BGM_mode)
+void Sound::StopBGM(string name)
 {
-	m_SourceVoice[SoundIndex[BGM_mode]]->Stop(0, XAUDIO2_COMMIT_NOW);
+	m_sourceVoice[SoundIndex[name]]->Stop(0, XAUDIO2_COMMIT_NOW);
 }
 
 /*
 	@brief	SEの再生
 */
-void Sound::SE_play(string SE_mode)
+void Sound::PlaySE(string name)
 {
-	PlaySound(SoundIndex[SE_mode], false);
+	PlaySound(SoundIndex[name], false);
 }
 
 /*
 	@brief	SEの停止
 */
-void Sound::SE_stop(string SE_mode)
+void Sound::StopSE(string name)
 {
-	m_SourceVoice[SoundIndex[SE_mode]]->Stop(0, XAUDIO2_COMMIT_NOW);
+	m_sourceVoice[SoundIndex[name]]->Stop(0, XAUDIO2_COMMIT_NOW);
 }
