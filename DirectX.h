@@ -4,9 +4,8 @@
 	@date	2017/02/18
 	@author	仁科香苗
 
-	@brief		サウンド生成の呼び出しを追記
-	@date		2017/03/02
-	@author	金澤信芳
+	@date		2017/03/03
+	@author	金澤信芳(サウンド、エフェクトのインクルード追記)
 */
 #pragma once
 #include "Common.h"
@@ -15,6 +14,7 @@
 #include "Camera.h"
 #include "Sprite.h"
 #include "Sound.h"
+#include "Effect/Effect.h"
 
 class DirectX
 {
@@ -42,5 +42,6 @@ private:
 	void SetCamera();						//描画の為のマトリックス設定
 	void DestroyD3D();					//解放処理
 
+	Camera* m_camera;					//カメラクラス
 };
 

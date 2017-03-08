@@ -6,6 +6,21 @@
 */
 
 #pragma once
+
+// エフェクトに必要なインクルードファイル
+#include "../Effekseer/include/Effekseer.h"
+#include "../Effekseer/include/EffekseerRendererDX11.h"
+
+// エフェクトに必要なライブラリファイル
+#if _DEBUG
+#pragma comment(lib, "Effekseer/lib/VS2015/Debug/Effekseer.lib" )
+#pragma comment(lib, "Effekseer/lib/VS2015/Debug/EffekseerRendererDX11.lib" )
+#else
+#pragma comment(lib, "Effekseer/lib/VS2015/Release/Effekseer.lib" )
+#pragma comment(lib, "Effekseer/lib/VS2015/Release/EffekseerRendererDX11.lib" )
+#endif
+
+#pragma once
 #include "../Common.h"
 #include <map>
 #include <string>
@@ -19,31 +34,18 @@ public:
 	Effect();
 	~Effect();
 
-	static void Init(HWND hwnd, ID3D11Device* device, ID3D11DeviceContext* deviceContext);
-	static void SetCamera(D3DXMATRIX view, D3DXMATRIX proj);
-	static void Destory();
+	static void Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext); // 初期化
+	static void SetCamera(); // カメラのセット
+	static void Destory(); // 解放
 
-	static void Set();
-	static int Load(const EFK_CHAR* path);
-
-	static void Draw();
-
-	static void Play(string name, D3DXVECTOR3 pos);
-	static void Stop(string name);
-	static void AllStop();
+	void Load(string path, float size, float playSpeed); // エフェクトのロード
+	void Render(); // 描画
+	void Play(D3DXVECTOR3 pos, float angle); // 再生
+	void Stop(); // 停止
 
 private:
-	static void SetScale(string name, float scale);
-	static void PlaySpeed(string name, float playSpeed);
-	static void SetRotation(string name, D3DXVECTOR3 pos, float yaw);
-
 	static ::Effekseer::Manager*					m_manager;
 	static ::EffekseerRenderer::Renderer*		m_renderer;
 	static ::Effekseer::Handle						m_handle;
 	static ::Effekseer::Effect*						m_effect;
-
-	static ID3D11Device*								m_device;
-	static ID3D11DeviceContext*					m_deviceContext;
-	static D3DXMATRIX								m_view;
-	static D3DXMATRIX								m_proj;
 };

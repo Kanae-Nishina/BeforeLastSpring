@@ -4,9 +4,8 @@
 	@date		2017/02/18
 	@author	仁科香苗
 
-	@brief		サウンド生成の呼び出しを追記
 	@date		2017/03/02
-	@author	金澤信芳
+	@author	金澤信芳(サウンド、エフェクト実装)
 */
 #include "DirectX.h"
 
@@ -22,6 +21,7 @@ DirectX::DirectX()
 	, m_backBuffer_DSTexDSV(nullptr)
 	, m_backBuffer_DSTex(nullptr)
 {
+	m_camera = new Camera;
 }
 
 /*
@@ -29,6 +29,8 @@ DirectX::DirectX()
 */
 DirectX::~DirectX()
 {
+	delete m_camera;
+	m_camera = nullptr;
 }
 
 
@@ -109,8 +111,7 @@ HRESULT DirectX::InitD3D(HWND wnd)
 	m_deviceContext->RSSetState(pIr);
 	SAFE_RELEASE(pIr);
 
-	Sound::getInstance().SoundSet(); // サウンドの生成
-
+	Sound::getInstance().Set(); // サウンドの生成
 	return S_OK;
 }
 
@@ -141,8 +142,11 @@ LRESULT DirectX::MsgProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 */
 void DirectX::AppInit()
 {
-	//スプライトの初期化
+	// スプライトの初期化
 	Sprite::Init(m_deviceContext);
+	
+	// エフェクトの初期化
+	Effect::Init(m_device, m_deviceContext);
 
 	//シーンの作成
 	m_sceneManager = new SceneRoot;
@@ -180,6 +184,8 @@ void DirectX::Update()
 void  DirectX::SetCamera()
 {
 	Sprite::SetCamera(Camera::GetView(), Camera::GetProj());
+
+	Effect::SetCamera();
 }
 
 /*
