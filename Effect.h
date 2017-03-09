@@ -6,7 +6,9 @@
 */
 
 #pragma once
-#include "../Common.h"
+#include "Common.h"
+#include <Effekseer.h>
+#include <EffekseerRendererDX11.h>
 #include <map>
 #include <string>
 #include <vector>
