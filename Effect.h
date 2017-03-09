@@ -35,7 +35,7 @@ public:
 	~Effect();
 
 	static void Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext); // 初期化
-	static void SetCamera(); // カメラのセット
+	static void SetCamera(D3DXVECTOR3 pos, D3DXVECTOR3 lookAtPos); // カメラのセット
 	static void Destory(); // 解放
 
 	void Load(string path, float size, float playSpeed); // エフェクトのロード
