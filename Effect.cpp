@@ -128,26 +128,16 @@ void Effect::Stop()
 /*
 	@エフェクトのカメラ設定
 */
-void Effect::SetCamera()
+void Effect::SetCamera(D3DXVECTOR3 pivotPos, D3DXVECTOR3 lookAtPos)
 {
-	// 投影行列を設定view
-	m_renderer->SetProjectionMatrix(
-		::Effekseer::Matrix44().PerspectiveFovLH(90.0f / 180.0f * 3.14f, (float)window_width / (float)window_height, 1.0f, 50.0f));
-
-	// カメラ行列を設定
-	m_renderer->SetCameraMatrix(
-		::Effekseer::Matrix44().LookAtLH( /*カメラ位置*/ ::Effekseer::Vector3D(0.0f, 5.0f, 20.0f), /*描画位置*/ ::Effekseer::Vector3D(0.0f, 0.0f, 0.0f), /*回転*/ ::Effekseer::Vector3D(0.0f, 1.0f, 0.0f)));
-
-#if 0
-	Effekseer::Vector3D g_position = ::Effekseer::Vector3D(pos.x, pos.y, pos.z);
-	const Effekseer::Vector3D g_at = ::Effekseer::Vector3D(look.x, look.y, look.z);
-	const Effekseer::Matrix44 m_View = ::Effekseer::Matrix44().LookAtLH(g_position, g_at, ::Effekseer::Vector3D(0, 1, 0));
-	const Effekseer::Matrix44 m_Proj = ::Effekseer::Matrix44().PerspectiveFovLH(D3DX_PI / 6, (FLOAT)window_width / (FLOAT)window_height, 0.1f, 1000.0f);
+	Effekseer::Vector3D Pos = ::Effekseer::Vector3D(pivotPos.x, pivotPos.y, pivotPos.z);
+	const Effekseer::Vector3D LookAtPos = ::Effekseer::Vector3D(lookAtPos.x, lookAtPos.y, lookAtPos.z);
+	const Effekseer::Matrix44 View = ::Effekseer::Matrix44().LookAtLH(Pos, LookAtPos, ::Effekseer::Vector3D(0, 1, 0));
+	const Effekseer::Matrix44 Proj = ::Effekseer::Matrix44().PerspectiveFovLH(D3DX_PI / 6, (FLOAT)window_width / (FLOAT)window_height, 0.1f, 1000.0f);
 
 	// 投影行列を設定
-	m_renderer->SetProjectionMatrix(m_Proj);
+	m_renderer->SetProjectionMatrix(Proj);
 
 	// カメラ行列を設定
-	m_renderer->SetCameraMatrix(m_View);
-#endif
+	m_renderer->SetCameraMatrix(View);
 }
