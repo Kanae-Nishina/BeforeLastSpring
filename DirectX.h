@@ -42,6 +42,6 @@ private:
 	void SetCamera();						//描画の為のマトリックス設定
 	void DestroyD3D();					//解放処理
 
-	Camera* m_camera;					//カメラクラス
+	Camera* m_camera;
 };
 

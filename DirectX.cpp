@@ -29,8 +29,6 @@ DirectX::DirectX()
 */
 DirectX::~DirectX()
 {
-	delete m_camera;
-	m_camera = nullptr;
 }
 
 
@@ -111,7 +109,6 @@ HRESULT DirectX::InitD3D(HWND wnd)
 	m_deviceContext->RSSetState(pIr);
 	SAFE_RELEASE(pIr);
 
-	Sound::getInstance().Set(); // サウンドの生成
 	return S_OK;
 }
 
@@ -142,11 +139,10 @@ LRESULT DirectX::MsgProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 */
 void DirectX::AppInit()
 {
-	// スプライトの初期化
-	Sprite::Init(m_deviceContext);
-	
-	// エフェクトの初期化
-	Effect::Init(m_device, m_deviceContext);
+
+	Sprite::Init(m_deviceContext);					// スプライトの初期化
+	Effect::Init(m_device, m_deviceContext);		// エフェクトの初期化
+	Sound::getInstance().Init();						// サウンドの生成
 
 	//シーンの作成
 	m_sceneManager = new SceneRoot;
@@ -185,7 +181,7 @@ void  DirectX::SetCamera()
 {
 	Sprite::SetCamera(Camera::GetView(), Camera::GetProj());
 
-	Effect::SetCamera();
+	Effect::SetCamera(m_camera->GetPivotPos(), m_camera->GetLookAtPos());
 }
 
 /*
