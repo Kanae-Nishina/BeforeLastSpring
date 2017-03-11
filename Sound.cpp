@@ -15,6 +15,7 @@ map<string, int> SoundIndex; // サウンド保管庫
 Sound::Sound()
 	: m_flag(true)
 {
+	m_soundData.clear();
 	ZeroMemory(this, sizeof(Sound));
 }
 
@@ -23,11 +24,6 @@ Sound::Sound()
 */
 Sound::~Sound()
 {
-	for (int i = 0; i < max_wav; i++)
-	{
-		if (m_sourceVoice[i]) m_sourceVoice[i]->DestroyVoice();
-	}
-	for (int i = 0; i<max_wav; i++) SAFE_DELETE(m_wavBuffer[i]);
 	SAFE_RELEASE(m_audio2);
 }
 
@@ -48,6 +44,9 @@ HRESULT Sound::Init()
 		CoUninitialize();
 		return E_FAIL;
 	}
+
+	Set();
+
 	return S_OK;
 }
 
@@ -56,12 +55,9 @@ HRESULT Sound::Init()
 */
 void Sound::Set()
 {
-	Init(); // サウンドの初期化
-
-	SoundIndex["TEST1"] = Load("Sound/BGM/DonkeyDonk.wav");
-	SoundIndex["TEST2"] = Load("Sound/BGM/AO-1.wav");
-	m_sourceVoice[SoundIndex["TEST2"]]->SetVolume(1.0f, 0);
-
+	SoundIndex["TestSE"] = Load("Sound/SE/openhihat.wav");
+	SoundIndex["TestBGM"] = Load("Sound/BGM/AO-1.wav");
+	m_soundData[SoundIndex["TestBGM"]].sourceVoice->SetVolume(1.0f, 0);
 }
 
 /*
@@ -69,8 +65,10 @@ void Sound::Set()
 */
 int Sound::Load(char* szFileName)
 {
-	static int iIndex = -1;
-	iIndex++;
+	SoundData* data = new SoundData;
+
+	static int Index = -1;
+	Index++;
 	HMMIO						hMmio = NULL;																					//WindowsマルチメディアAPIのハンドル(WindowsマルチメディアAPIはWAVファイル関係の操作用のAPI)
 	DWORD						dwWavSize = 0;																					//WAVファイル内　WAVデータのサイズ（WAVファイルはWAVデータで占められているので、ほぼファイルサイズと同一）
 	WAVEFORMATEX*		pwfex;																								//WAVのフォーマット 例）16ビット、44100Hz、ステレオなど
@@ -94,19 +92,23 @@ int Sound::Load(char* szFileName)
 	ckInfo.ckid = mmioFOURCC('d', 'a', 't', 'a');
 	mmioDescend(hMmio, &ckInfo, &riffckInfo, MMIO_FINDCHUNK);											//データチャンクにセット
 	dwWavSize = ckInfo.cksize;
-	m_wavBuffer[iIndex] = new BYTE[dwWavSize];
+
+	data->wavBuffer = new BYTE[dwWavSize];
+
 	DWORD dwOffset = ckInfo.dwDataOffset;
-	mmioRead(hMmio, (HPSTR)m_wavBuffer[iIndex], dwWavSize);
+	mmioRead(hMmio, (HPSTR)data->wavBuffer, dwWavSize);
 
 	//ソースボイスにデータを詰め込む	
-	if (FAILED(m_audio2->CreateSourceVoice(&m_sourceVoice[iIndex], pwfex)))
+	if (FAILED(m_audio2->CreateSourceVoice(&data->sourceVoice, pwfex)))
 	{
 		MessageBox(0, L"ソースボイス作成失敗", 0, MB_OK);
 		return E_FAIL;
 	}
-	m_wavSize[iIndex] = dwWavSize;
+	data->wavSize = dwWavSize;
 
-	return iIndex;
+	m_soundData.push_back(*data);
+
+	return Index;
 }
 
 /*
@@ -114,25 +116,25 @@ int Sound::Load(char* szFileName)
 */
 void  Sound::PlaySound(int soundIndex, bool loopFlag)
 {
-	m_sourceVoice[soundIndex]->Stop(0, 1);
-	m_sourceVoice[soundIndex]->FlushSourceBuffers();
+	m_soundData[soundIndex].sourceVoice->Stop(0, 1);
+	m_soundData[soundIndex].sourceVoice->FlushSourceBuffers();
 	XAUDIO2_BUFFER buffer = { 0 };
-	buffer.pAudioData = m_wavBuffer[soundIndex];
+	buffer.pAudioData = m_soundData[soundIndex].wavBuffer;
 	buffer.Flags = XAUDIO2_END_OF_STREAM;
-	buffer.AudioBytes = m_wavSize[soundIndex];
+	buffer.AudioBytes = m_soundData[soundIndex].wavSize;
 
 	if (loopFlag) // ループの判定
 	{
 		buffer.LoopCount = XAUDIO2_LOOP_INFINITE;
 	}
 
-	if (FAILED(m_sourceVoice[soundIndex]->SubmitSourceBuffer(&buffer)))
+	if (FAILED(m_soundData[soundIndex].sourceVoice->SubmitSourceBuffer(&buffer)))
 	{
 		MessageBox(0, L"ソースボイスにサブミット失敗", 0, MB_OK);
 		return;
 	}
 
-	m_sourceVoice[soundIndex]->Start(0, XAUDIO2_COMMIT_NOW);
+	m_soundData[soundIndex].sourceVoice->Start(0, XAUDIO2_COMMIT_NOW);
 }
 
 /*
@@ -148,7 +150,7 @@ void Sound::PlayBGM(string name)
 */
 void Sound::StopBGM(string name)
 {
-	m_sourceVoice[SoundIndex[name]]->Stop(0, XAUDIO2_COMMIT_NOW);
+	m_soundData[SoundIndex[name]].sourceVoice->Stop(0, XAUDIO2_COMMIT_NOW);
 }
 
 /*
@@ -164,5 +166,5 @@ void Sound::PlaySE(string name)
 */
 void Sound::StopSE(string name)
 {
-	m_sourceVoice[SoundIndex[name]]->Stop(0, XAUDIO2_COMMIT_NOW);
+	m_soundData[SoundIndex[name]].sourceVoice->Stop(0, XAUDIO2_COMMIT_NOW);
 }
